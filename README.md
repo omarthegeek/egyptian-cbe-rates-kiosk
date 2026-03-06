@@ -1,4 +1,4 @@
-# 🦅 CBE Exchange Rates Kiosk
+# Central Bank of Egypt Currency Exchange Rates Kiosk
 
 Fullscreen Raspberry Pi kiosk displaying official Central Bank of Egypt exchange rates. Updates every 15 minutes.
 ## Install (one line)
