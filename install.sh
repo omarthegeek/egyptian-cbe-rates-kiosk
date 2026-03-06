@@ -62,7 +62,7 @@ cat > "$AUTOSTART_DIR/unclutter.desktop" << 'EOF'
 [Desktop Entry]
 Type=Application
 Name=Unclutter
-Exec=unclutter -idle 1 -root
+Exec=unclutter -idle 0 -root -noevents
 Hidden=false
 X-GNOME-Autostart-enabled=true
 EOF
