@@ -190,6 +190,14 @@
 
   .flag { font-size: 2rem; line-height: 1; }
 
+  .flag img {
+    width: 40px;
+    height: 24px;
+    object-fit: cover;
+    border-radius: 1px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+  }  
+
   .cur-name  { font-size: 0.9rem; font-weight: 700; color: var(--text); }
   .cur-label { font-size: 0.62rem; letter-spacing:1.5px; color:var(--muted); text-transform:uppercase; margin-top:2px; }
 
@@ -324,7 +332,7 @@
   <footer>
     <span>Source: CBE · exchangerate-api.com (EGP base)</span>
     <span id="footer-rate-date"></span>
-    <span>Refreshes daily at 09:00 Cairo time</span>
+    <span>Refreshes every 15 minutes</span>
   </footer>
 
 </div>
@@ -332,15 +340,15 @@
 <script>
 // ── Currencies to display ──────────────────────────────────────────────────
 const CURRENCIES = [
-  { code:'USD', name:'US Dollar',       flag:'🇺🇸' },
-  { code:'EUR', name:'Euro',            flag:'🇪🇺' },
-  { code:'CNY', name:'Chinese Yuan',    flag:'🇨🇳' },
-  { code:'SAR', name:'Saudi Riyal',     flag:'🇸🇦' },
-  { code:'AED', name:'UAE Dirham',      flag:'🇦🇪' },
-  { code:'GBP', name:'British Pound',   flag:'🇬🇧' },
-//  { code:'KWD', name:'Kuwaiti Dinar',   flag:'🇰🇼' },
-//  { code:'JPY', name:'Japanese Yen',    flag:'🇯🇵' },
-//  { code:'CHF', name:'Swiss Franc',     flag:'🇨🇭' },
+  { code:'USD', name:'US Dollar',       flag:'us' },
+  { code:'EUR', name:'Euro',            flag:'eu' },
+  { code:'CNY', name:'Chinese Yuan',    flag:'cn' },
+  { code:'SAR', name:'Saudi Riyal',     flag:'sa' },
+  { code:'AED', name:'UAE Dirham',      flag:'ae' },
+  { code:'GBP', name:'British Pound',   flag:'gb' },
+//  { code:'KWD', name:'Kuwaiti Dinar',   flag:'kw' },
+//  { code:'JPY', name:'Japanese Yen',    flag:'jp' },
+//  { code:'CHF', name:'Swiss Franc',     flag:'ch' },
 ];
 
 // CBE official spread is very tight — ~0.14% (based on published buy/sell data)
@@ -453,7 +461,9 @@ function renderTable(dateStr) {
     row.style.animationDelay = `${i * 0.06}s`;
     row.innerHTML = `
       <div class="cur-info">
-        <div class="flag">${cur.flag}</div>
+        <div class="flag">
+          <img src="https://flagcdn.com/w40/${cur.flag}.png" alt="">
+        </div>
         <div>
           <div class="cur-name">${cur.name}</div>
           <div class="cur-label">${dateStr || ''}</div>
