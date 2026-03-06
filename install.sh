@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-REPO="https://raw.githubusercontent.com/YOUR_USERNAME/egypt-rates-kiosk/main"
+REPO="https://raw.githubusercontent.com/omarthegeek/egyptian-cbe-rates-kiosk/refs/heads/main"
 KIOSK_DIR="$HOME/kiosk"
 AUTOSTART_DIR="$HOME/.config/autostart"
 
