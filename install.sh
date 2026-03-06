@@ -29,6 +29,11 @@ echo "▶ Installing dependencies..."
 sudo apt-get update -qq
 sudo apt-get install -y --no-install-recommends xorg openbox
 
+# 2. Download HTML
+echo "▶ Downloading kiosk page..."
+mkdir -p "$KIOSK_DIR"
+curl -fsSL "$WEBPAGE_URL" -o "$KIOSK_DIR/$WEBPAGE_LOCALNAME"
+
 # Write the openbox autostart (runs inside the minimal X session)
 mkdir -p "$HOME/.config/openbox"
 cat > "$HOME/.config/openbox/autostart" << EOF
