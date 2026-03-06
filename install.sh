@@ -6,6 +6,17 @@ KIOSK_DIR="$HOME/kiosk"
 WEBPAGE_LOCALNAME="egypt-rates-kiosk.html"
 AUTOSTART_DIR="$HOME/.config/autostart"
 
+echo ""
+echo "╔══════════════════════════════════════╗"
+echo "║   CBE Kiosk Installer                ║"
+echo "╚══════════════════════════════════════╝"
+echo ""
+
+# Dependencies
+echo "▶ Installing dependencies..."
+sudo apt-get update -qq
+sudo apt-get install -y --no-install-recommends xorg openbox
+
 ## Check for Chromium package (name differs across distros)
 if apt-cache show chromium &>/dev/null; then
     sudo apt-get install -y chromium
@@ -17,17 +28,6 @@ else
     echo "❌ Could not find Chromium. Install it manually then re-run."
     exit 1
 fi
-
-echo ""
-echo "╔══════════════════════════════════════╗"
-echo "║   CBE Kiosk Installer                ║"
-echo "╚══════════════════════════════════════╝"
-echo ""
-
-# Dependencies
-echo "▶ Installing dependencies..."
-sudo apt-get update -qq
-sudo apt-get install -y --no-install-recommends xorg openbox
 
 # 2. Download HTML
 echo "▶ Downloading kiosk page..."
