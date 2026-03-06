@@ -70,30 +70,31 @@ fi
 echo "▶ Setting up autostart..."
 mkdir -p "$AUTOSTART_DIR"
 
+# Write launcher script (allows safe line breaks for Chromium flags)
+cat > "$KIOSK_DIR/launch.sh" << EOF
+#!/bin/bash
+sleep 8
+unclutter -idle 0 -root -noevents &
+$CHROMIUM_BIN \\
+  --kiosk \\
+  --noerrdialogs \\
+  --disable-infobars \\
+  --no-first-run \\
+  --disable-translate \\
+  --check-for-update-interval=31536000 \\
+  --disable-features=InfiniteSessionRestore \\
+  --disable-background-timer-throttling \\
+  --disable-renderer-backgrounding \\
+  'file://$KIOSK_DIR/$WEBPAGE_LOCALNAME'
+EOF
+chmod +x "$KIOSK_DIR/launch.sh"
+
+# .desktop simply calls the launcher
 cat > "$AUTOSTART_DIR/cbe-kiosk.desktop" << EOF
 [Desktop Entry]
 Type=Application
 Name=CBE Rates Kiosk
-Exec=/bin/bash -c "sleep 8 && $CHROMIUM_BIN 
---kiosk 
---noerrdialogs 
---disable-infobars 
---no-first-run 
---disable-translate 
---check-for-update-interval=31536000
---disable-features=InfiniteSessionRestore 
---disable-background-timer-throttling 
---disable-renderer-backgrounding 
- 'file://$KIOSK_DIR/$WEBPAGE_LOCALNAME'"
-Hidden=false
-X-GNOME-Autostart-enabled=true
-EOF
-
-cat > "$AUTOSTART_DIR/unclutter.desktop" << 'EOF'
-[Desktop Entry]
-Type=Application
-Name=Unclutter
-Exec=unclutter -idle 0 -root -noevents
+Exec=/bin/bash $KIOSK_DIR/launch.sh
 Hidden=false
 X-GNOME-Autostart-enabled=true
 EOF
