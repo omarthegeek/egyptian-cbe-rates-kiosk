@@ -1,17 +1,16 @@
 # 🦅 CBE Exchange Rates Kiosk
 
-Fullscreen Raspberry Pi kiosk displaying official Central Bank of Egypt exchange rates. Updates daily at 09:00 Cairo time.
-
+Fullscreen Raspberry Pi kiosk displaying official Central Bank of Egypt exchange rates. Updates every 15 minutes.
 ## Install (one line)
 ```bash
-bash <(curl -fsSL https://github.com/omarthegeek/egyptian-cbe-rates-kiosk/main/install.sh)
+curl -fsSL https://raw.githubusercontent.com/omarthegeek/egyptian-cbe-rates-kiosk/refs/heads/main/install.sh | bash
 ```
 
 Then reboot.
 
 ## Uninstall
 ```bash
-bash <(curl -fsSL https://github.com/omarthegeek/egyptian-cbe-rates-kiosk/main/uninstall.sh)
+curl -fsSL https://raw.githubusercontent.com/omarthegeek/egyptian-cbe-rates-kiosk/refs/heads/main/uninstall.sh | bash
 ```
 
 ## Requirements
