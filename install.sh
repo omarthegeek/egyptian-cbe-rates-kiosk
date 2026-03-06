@@ -14,7 +14,19 @@ echo ""
 # 1. Dependencies
 echo "▶ Installing dependencies..."
 sudo apt-get update -qq
-sudo apt-get install -y chromium-browser unclutter curl
+sudo apt-get install -y unclutter curl
+
+## Check for Chromium package (name differs across distros)
+if apt-cache show chromium &>/dev/null; then
+    sudo apt-get install -y chromium
+    CHROMIUM_BIN="chromium"
+elif apt-cache show chromium-browser &>/dev/null; then
+    sudo apt-get install -y chromium-browser
+    CHROMIUM_BIN="chromium-browser"
+else
+    echo "❌ Could not find Chromium. Install it manually then re-run."
+    exit 1
+fi
 
 # 2. Download HTML
 echo "▶ Downloading kiosk page..."
