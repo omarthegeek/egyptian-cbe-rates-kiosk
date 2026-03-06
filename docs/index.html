@@ -208,8 +208,9 @@
     text-align: right;
     letter-spacing: 1px;
   }
-  .num.buy  { color: var(--green); }
-  .num.sell { color: var(--orange); }
+  
+  .num.sell { color: var(--green); }
+  .num.buy  { color: var(--orange); }
   .num.code { font-size:0.9rem; color:var(--muted); letter-spacing:2px; }
   .num.change { font-size: 0.78rem; }
   .num.up   { color: var(--green); }
@@ -322,8 +323,8 @@
     <div class="col-head">
       <span>Currency</span>
       <span>Code</span>
-      <span>Buy (EGP)</span>
       <span>Sell (EGP)</span>
+      <span>Buy (EGP)</span>
       <span>Change</span>
     </div>
     <div class="rates-list" id="rates-list"></div>
@@ -470,8 +471,8 @@ function renderTable(dateStr) {
         </div>
       </div>
       <div class="num code">${cur.code}</div>
-      <div class="num buy">${fmt(buy)}</div>
       <div class="num sell">${fmt(sell)}</div>
+      <div class="num buy">${fmt(buy)}</div>
       ${changeHTML}
     `;
     list.appendChild(row);
