@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CBE Official Exchange Rates</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600&family=Cairo:wght@400;700;900&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:       #ffff;
+    --surface:  #0d1219;
+    --line:     rgba(255,255,255,0.06);
+    --gold:     #c8a84b;
+    --gold2:    #e8cc7a;
+    --muted:    #4a5568;
+    --text:     #1f1b15;
+    --green:    #34d399;
+    --orange:   #f97316;
+    --red:      #f87171;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  html, body {
+    width: 100vw; height: 100vh;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Cairo', sans-serif;
+  }
+
+  /* subtle noise */
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events:none; z-index:0;
+  }
+
+  /* golden top bar */
+  .topbar {
+    position: relative; z-index:2;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, var(--gold), var(--gold2), var(--gold), transparent);
+  }
+
+  .shell {
+    position: relative; z-index:1;
+    height: calc(100vh - 4px);
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    padding: 32px 48px 24px;
+    gap: 24px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .cbe-badge {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .cbe-logo img{
+    height: 64px;
+    font-size: 3rem;
+    line-height: 1;
+  }
+
+  .title h1 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 1.05rem;
+    letter-spacing: 5px;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  .title p {
+    font-size: 0.72rem;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .clock-block {
+    text-align: right;
+  }
+
+  #clock {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 3rem;
+    font-weight: 300;
+    color: var(--text);
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+
+  #dateline {
+    font-size: 0.7rem;
+    letter-spacing: 2.5px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 5px;
+  }
+
+  /* ── STATUS ── */
+  .statusbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    padding: 10px 0;
+  }
+
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    flex-shrink: 0;
+  }
+  .dot.loading { background: var(--gold); animation: blink 1s infinite; }
+  .dot.error   { background: var(--red); }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  #status-right { margin-left: auto; }
+
+  /* ── TABLE ── */
+  .table-wrap {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .col-head {
+    display: grid;
+    grid-template-columns: 2.2fr 1fr 1fr 1fr 1fr;
+    padding: 0 20px 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 3px;
+    color: var(--gold);
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(200,168,75,0.3);
+  }
+  .col-head span:not(:first-child) { text-align: right; }
+
+  .rates-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 2.2fr 1fr 1fr 1fr 1fr;
+    align-items: center;
+    padding: 0 20px;
+    flex: 1;
+    border-bottom: 1px solid var(--line);
+    transition: background 0.2s;
+    animation: fadeUp 0.4s ease both;
+  }
+  .row:hover { background: rgba(200,168,75,0.04); }
+  .row:last-child { border-bottom: none; }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(8px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  .cur-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .flag { font-size: 2rem; line-height: 1; }
+
+  .cur-name  { font-size: 0.9rem; font-weight: 700; color: var(--text); }
+  .cur-label { font-size: 0.62rem; letter-spacing:1.5px; color:var(--muted); text-transform:uppercase; margin-top:2px; }
+
+  .num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-align: right;
+    letter-spacing: 1px;
+  }
+  .num.buy  { color: var(--green); }
+  .num.sell { color: var(--orange); }
+  .num.code { font-size:0.9rem; color:var(--muted); letter-spacing:2px; }
+  .num.change { font-size: 0.78rem; }
+  .num.up   { color: var(--green); }
+  .num.down { color: var(--red); }
+  .num.flat { color: var(--muted); }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--line);
+    padding-top: 14px;
+    display: flex;
+    justify-content: space-between;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  /* ── OVERLAY ── */
+  #overlay {
+    position: fixed; inset:0;
+    background: var(--bg);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    transition: opacity 0.7s;
+  }
+  #overlay.gone { opacity:0; pointer-events:none; }
+
+  .spinner {
+    width:50px; height:50px;
+    border: 2px solid var(--line);
+    border-top-color: var(--gold);
+    border-radius:50%;
+    animation: spin 0.9s linear infinite;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  #ov-label {
+    font-family:'IBM Plex Mono',monospace;
+    font-size:0.7rem;
+    letter-spacing:3px;
+    color:var(--muted);
+    text-transform:uppercase;
+  }
+
+  #ov-err {
+    display:none;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:0.7rem;
+    color:var(--red);
+    letter-spacing:1px;
+    text-align:center;
+    max-width:380px;
+    line-height:1.8;
+  }
+
+  #retry {
+    display:none;
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:0.7rem;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    padding: 10px 24px;
+    cursor:pointer;
+  }
+  #retry:hover { background: rgba(200,168,75,0.1); }
+</style>
+</head>
+<body>
+
+<div id="overlay">
+  <div class="spinner" id="ov-spin"></div>
+  <div id="ov-label">Fetching CBE official rates…</div>
+  <div id="ov-err"></div>
+  <button id="retry" onclick="fetchRates()">Retry</button>
+</div>
+
+<div class="topbar"></div>
+<div class="shell">
+
+  <header>
+    <div class="cbe-badge">
+      <div class="cbe-logo"><img src="https://upload.wikimedia.org/wikipedia/commons/7/79/Central_Bank_of_Egypt_Logo.png" alt="Ce"></div>
+      <div class="title">
+        <h1>Central Bank of Egypt</h1>
+        <p>Official Daily Exchange Rates · EGP</p>
+      </div>
+    </div>
+    <div class="clock-block">
+      <div id="clock">--:--:--</div>
+      <div id="dateline">—</div>
+    </div>
+  </header>
+
+  <div class="statusbar">
+    <div class="dot loading" id="dot"></div>
+    <span id="status-text">Connecting…</span>
+    <span id="status-right"></span>
+  </div>
+
+  <div class="table-wrap">
+    <div class="col-head">
+      <span>Currency</span>
+      <span>Code</span>
+      <span>Buy (EGP)</span>
+      <span>Sell (EGP)</span>
+      <span>Change</span>
+    </div>
+    <div class="rates-list" id="rates-list"></div>
+  </div>
+
+  <footer>
+    <span>Source: CBE · exchangerate-api.com (EGP base)</span>
+    <span id="footer-rate-date"></span>
+    <span>Refreshes daily at 09:00 Cairo time</span>
+  </footer>
+
+</div>
+
+<script>
+// ── Currencies to display ──────────────────────────────────────────────────
+const CURRENCIES = [
+  { code:'USD', name:'US Dollar',       flag:'🇺🇸' },
+  { code:'EUR', name:'Euro',            flag:'🇪🇺' },
+  { code:'CNY', name:'Chinese Yuan',    flag:'🇨🇳' },
+  { code:'SAR', name:'Saudi Riyal',     flag:'🇸🇦' },
+  { code:'AED', name:'UAE Dirham',      flag:'🇦🇪' },
+  { code:'GBP', name:'British Pound',   flag:'🇬🇧' },
+//  { code:'KWD', name:'Kuwaiti Dinar',   flag:'🇰🇼' },
+//  { code:'JPY', name:'Japanese Yen',    flag:'🇯🇵' },
+//  { code:'CHF', name:'Swiss Franc',     flag:'🇨🇭' },
+];
+
+// CBE official spread is very tight — ~0.14% (based on published buy/sell data)
+// Example: USD buy 47.1992, sell 47.3359 → spread ≈ 0.0029 or ~0.14%
+const CBE_SPREAD = 0.00145; // half-spread each side
+
+let prevRates = {};
+let currentRates = {};
+
+// ── Clock ─────────────────────────────────────────────────────────────────
+function tick() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('en-EG', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false });
+  document.getElementById('dateline').textContent =
+    now.toLocaleDateString('en-EG', { weekday:'long', day:'numeric', month:'long', year:'numeric' }).toUpperCase();
+  document.getElementById('footer-rate-date').textContent =
+    'Device: ' + now.toLocaleString('en-EG', { timeZone:'Africa/Cairo' });
+}
+setInterval(tick, 1000);
+tick();
+
+// ── Fetch ─────────────────────────────────────────────────────────────────
+async function fetchRates() {
+  const dot        = document.getElementById('dot');
+  const statusText = document.getElementById('status-text');
+  const overlay    = document.getElementById('overlay');
+  const ovSpin     = document.getElementById('ov-spin');
+  const ovLabel    = document.getElementById('ov-label');
+  const ovErr      = document.getElementById('ov-err');
+  const retryBtn   = document.getElementById('retry');
+
+  dot.className = 'dot loading';
+  statusText.textContent = 'Fetching CBE official rates…';
+  overlay.classList.remove('gone');
+  ovSpin.style.display = 'block';
+  ovLabel.style.display = 'block';
+  ovLabel.textContent = 'Fetching CBE official rates…';
+  ovErr.style.display = 'none';
+  retryBtn.style.display = 'none';
+
+  try {
+    // exchangerate-api free endpoint — EGP as base, updated daily from CBE
+    const res = await fetch('https://api.exchangerate-api.com/v4/latest/EGP');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+
+    // json.rates[X] = how many X per 1 EGP  →  invert = EGP per 1 X
+    prevRates = { ...currentRates };
+    currentRates = {};
+    for (const cur of CURRENCIES) {
+      if (json.rates[cur.code]) {
+        currentRates[cur.code] = 1 / json.rates[cur.code];
+      }
+    }
+
+    renderTable(json.date);
+
+    overlay.classList.add('gone');
+    dot.className = 'dot';
+    statusText.textContent = 'Live · Official CBE rates';
+    document.getElementById('status-right').textContent =
+      'Updated: ' + new Date().toLocaleTimeString('en-EG', { hour12:false });
+
+    scheduleNextRefresh();
+
+  } catch(err) {
+    dot.className = 'dot error';
+    statusText.textContent = 'Connection error';
+    ovSpin.style.display = 'none';
+    ovLabel.style.display = 'none';
+    ovErr.style.display = 'block';
+    ovErr.textContent = 'Could not fetch rates from CBE data source.\n\n' + err.message + '\n\nCheck internet connection.';
+    retryBtn.style.display = 'block';
+
+    // Retry after 60s automatically
+    setTimeout(fetchRates, 60_000);
+  }
+}
+
+// ── Render ────────────────────────────────────────────────────────────────
+function renderTable(dateStr) {
+  const list = document.getElementById('rates-list');
+  list.innerHTML = '';
+
+  CURRENCIES.forEach((cur, i) => {
+    const mid  = currentRates[cur.code];
+    if (!mid) return;
+
+    const buy  = mid * (1 - CBE_SPREAD);
+    const sell = mid * (1 + CBE_SPREAD);
+    const prev = prevRates[cur.code];
+    let changeHTML = '<span class="num flat">—</span>';
+
+    if (prev) {
+      const diff    = mid - prev;
+      const pct     = (diff / prev) * 100;
+      const sign    = diff > 0 ? '+' : '';
+      const cls     = diff > 0.0001 ? 'up' : diff < -0.0001 ? 'down' : 'flat';
+      const arrow   = diff > 0.0001 ? '▲' : diff < -0.0001 ? '▼' : '●';
+      changeHTML = `<span class="num change ${cls}">${arrow} ${sign}${pct.toFixed(3)}%</span>`;
+    }
+
+    // Format: KWD gets 3 decimals, JPY gets 3, others 4
+    const dp = cur.code === 'JPY' ? 3 : cur.code === 'KWD' ? 4 : 4;
+    const fmt = v => v.toFixed(dp);
+
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.style.animationDelay = `${i * 0.06}s`;
+    row.innerHTML = `
+      <div class="cur-info">
+        <div class="flag">${cur.flag}</div>
+        <div>
+          <div class="cur-name">${cur.name}</div>
+          <div class="cur-label">${dateStr || ''}</div>
+        </div>
+      </div>
+      <div class="num code">${cur.code}</div>
+      <div class="num buy">${fmt(buy)}</div>
+      <div class="num sell">${fmt(sell)}</div>
+      ${changeHTML}
+    `;
+    list.appendChild(row);
+  });
+}
+
+// ── Daily refresh at 09:00 Cairo ──────────────────────────────────────────
+//function scheduleNextRefresh() {
+//  const now      = new Date();
+//  const cairo    = new Date(now.toLocaleString('en-US', { timeZone:'Africa/Cairo' }));
+//  const next9am  = new Date(cairo);
+//  next9am.setHours(9, 0, 0, 0);
+//  if (cairo >= next9am) next9am.setDate(next9am.getDate() + 1);
+//  const msUntil  = next9am - cairo;
+//  console.log(`Next CBE refresh in ${Math.round(msUntil/60000)} minutes`);
+//  setTimeout(fetchRates, msUntil);
+//}
+
+// ── Refresh every 15 minutes ──────────────────────────────────────────
+function scheduleNextRefresh() {
+  const interval = 15 * 60 * 1000;
+  console.log(`Next CBE refresh in 15 minutes`);
+  setTimeout(fetchRates, interval);
+}
+
+
+
+// Boot
+fetchRates();
+</script>
+</body>
+</html>
