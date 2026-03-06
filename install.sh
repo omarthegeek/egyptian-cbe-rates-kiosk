@@ -16,6 +16,7 @@ echo ""
 echo "▶ Installing dependencies..."
 sudo apt-get update -qq
 sudo apt-get install -y --no-install-recommends xorg openbox
+sudo apt-get install -y unclutter curl
 
 ## Check for Chromium package (name differs across distros)
 if apt-cache show chromium &>/dev/null; then
