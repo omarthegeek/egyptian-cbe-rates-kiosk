@@ -45,6 +45,27 @@ cat > "$HOME/.config/lxsession/LXDE-pi/autostart" << 'EOF'
 @xset s noblank
 EOF
 
+# Disable via lightdm (system level)
+sudo sed -i 's/#xserver-command=X/xserver-command=X -s 0 -dpms/' /etc/lightdm/lightdm.conf 2>/dev/null || true
+
+# Chromium flags to prevent sleep (add to the kiosk Exec line)
+# --disable-features=InfiniteSessionRestore prevents Chromium sleep tab throttling
+
+# Disable Pi's built-in screen blanking (console level, catches edge cases)
+sudo sed -i 's/^BLANK_TIME=.*/BLANK_TIME=0/' /etc/kbd/config 2>/dev/null || true
+sudo sed -i 's/^POWERDOWN_TIME=.*/POWERDOWN_TIME=0/' /etc/kbd/config 2>/dev/null || true
+
+# For Bookworm (uses labwc/wayfire compositor instead of X11)
+if [ -f /etc/wayfire/wayfire.ini ] || [ -d "$HOME/.config/wayfire" ]; then
+    mkdir -p "$HOME/.config/wayfire"
+    cat >> "$HOME/.config/wayfire/wayfire.ini" << 'EOF'
+
+[idle]
+screensaver_timeout = 0
+dpms_timeout = 0
+EOF
+fi
+
 # 4. Autostart kiosk
 echo "▶ Setting up autostart..."
 mkdir -p "$AUTOSTART_DIR"
@@ -53,7 +74,17 @@ cat > "$AUTOSTART_DIR/cbe-kiosk.desktop" << EOF
 [Desktop Entry]
 Type=Application
 Name=CBE Rates Kiosk
-Exec=/bin/bash -c "sleep 8 && $CHROMIUM_BIN --kiosk --noerrdialogs --disable-infobars --no-first-run --disable-translate --check-for-update-interval=31536000 'file://$KIOSK_DIR/$WEBPAGE_LOCALNAME'"
+Exec=/bin/bash -c "sleep 8 && $CHROMIUM_BIN 
+--kiosk 
+--noerrdialogs 
+--disable-infobars 
+--no-first-run 
+--disable-translate 
+--check-for-update-interval=31536000
+--disable-features=InfiniteSessionRestore 
+--disable-background-timer-throttling 
+--disable-renderer-backgrounding 
+ 'file://$KIOSK_DIR/$WEBPAGE_LOCALNAME'"
 Hidden=false
 X-GNOME-Autostart-enabled=true
 EOF
