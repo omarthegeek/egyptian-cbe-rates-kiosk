@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-WEBPAGE_URL="https://raw.githubusercontent.com/omarthegeek/egyptian-cbe-rates-kiosk/refs/heads/main/docs/index.html"
+WEBPAGE_URL="https://raw.githubusercontent.com/omarthegeek/cbe-rates-kiosk/refs/heads/main/docs/index.html"
 KIOSK_DIR="$HOME/kiosk"
 WEBPAGE_LOCALNAME="egypt-rates-kiosk.html"
 AUTOSTART_DIR="$HOME/.config/autostart"
